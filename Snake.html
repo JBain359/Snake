@@ -1,0 +1,205 @@
+<!-- Joseph Bain:welp, here's another one that i had my eye's one for a little while snake! 7/21/15-->
+<!doctype html>
+<html>
+<head>
+<style>
+    body{background: #666}
+    #Playpen{margin: auto; background: #fff; border-color: #000}
+    #replay{visibility: hidden}
+    #status{font-family: sans-serif}
+    #colors1{background: #fff;width:400;height: 600}
+    #colors2{background: #fff;width:400;height: 600}
+    #colors3{background: #fff;width:400;height: 600}
+</style>
+<script>
+    function draw(){
+        
+        audio = new Audio()           //background
+        audio.src = 'audio/mixdown.wav'
+        audio.loop = true
+        audio.play()
+        
+        death = new Audio()             //death
+        death.src = 'audio/xghost.mp3'
+        death.loop = false
+        
+        eat = new Audio()               //eat food
+        eat.src = 'audio/xpickup.mp3'
+        eat.loop = false
+        
+        var ctx = document.getElementById('Playpen').getContext('2d')
+
+        var cW = ctx.canvas.width
+        var cH = ctx.canvas.height
+
+        function getColor(){                            // food color randomizer
+            var hex = "0123456789ABCDEF".split('')
+            var color='#'
+            for(var i=0;i<6;i++){
+                color+=hex[Math.floor(Math.random()*16)]
+            }
+            return color
+        }
+        var colors = [getColor(),getColor(),getColor()]
+        function setColors(){
+            var color = colors[Math.floor(Math.random()*colors.length)]
+            return color
+        }
+        var score
+        var endScore
+            var snakeColor= setColors()                      //randomizes original snake color
+            var foodColor = setColors()
+            var snake =[{"x":-55,"y":0,"w":10,"h":10,"bg":snakeColor},      //original snake color
+                        {"x":-44,"y":0,"w":10,"h":10,"bg":snakeColor},
+                        {"x":-33,"y":0,"w":10,"h":10,"bg":snakeColor},
+                        {"x":-22,"y":0,"w":10,"h":10,"bg":snakeColor},
+                        {"x":-11,"y":0,"w":10,"h":10,"bg":snakeColor},
+                        {"x":0,"y":0,"w":10,"h":10,"bg":snakeColor},
+                        ]
+            
+            var disable 
+            function player(){                                                     //Player class, All the interactions occur here
+                this.x, this.y, this.w=10, this.h=10, this.bg=snakeColor, this.dir
+                this.render = function(){
+                    for(var s=0;s<snake.length;s++){
+                        var sk = snake[s]
+                        ctx.fillStyle = sk.bg
+                        ctx.fillRect(sk.x,sk.y,sk.w,sk.h)
+                        
+                    }
+                    
+                    if(lose !== true){
+                        score = snake.length-6
+                    }
+                    var head = snake[snake.length-1].bg
+                    for(var s=snake.length-1;s>=0;s--){
+                        var snk = snake[s]
+                        
+                        if(s===0){                              //each segment is a unique color based on the food
+                            snake[snake.length-1].bg = head
+                        }else{
+                            snk.bg = snake[s-1].bg
+                        }
+                        
+                    }
+                    document.getElementById('status').innerHTML = "SCORE: " +score
+                    if(this.dir !== disable){                                           
+                    if(this.dir === "right"){
+                            snake.splice(0,1)
+                            snake.push({"x":sk.x+=10,"y":sk.y,"w":10,"h":10,"bg":snake[snake.length-1].bg})
+                            disable = "left"
+                        }else if(this.dir === "left"){
+                            snake.splice(0,1)
+                            snake.push({"x":sk.x-=10,"y":sk.y,"w":10,"h":10,"bg":snake[snake.length-1].bg})
+                            disable = "right"
+                        }else if(this.dir === "up"){
+                            snake.splice(0,1)
+                            snake.push({"x":sk.x,"y":sk.y-=10,"w":10,"h":10,"bg":snake[snake.length-1].bg})
+                            disable = "down"
+                        }else if(this.dir === "down"){
+                            snake.splice(0,1)
+                            snake.push({"x":sk.x,"y":sk.y+=10,"w":10,"h":10,"bg":snake[snake.length-1].bg})
+                            disable = "up"
+                        }
+                    }else if(this.dir === disable){                                     //cannot go right while going left etc.
+                        if(disable === "left"){
+                            snake.splice(0,1)
+                            snake.push({"x":sk.x+=10,"y":sk.y,"w":10,"h":10,"bg":snake[snake.length-1].bg})
+                        }else if(disable === "right"){
+                            snake.splice(0,1)
+                            snake.push({"x":sk.x-=10,"y":sk.y,"w":10,"h":10,"bg":snake[snake.length-1].bg})
+                        }else if(disable === "down"){
+                            snake.splice(0,1)
+                            snake.push({"x":sk.x,"y":sk.y-=10,"w":10,"h":10,"bg":snake[snake.length-1].bg})
+                        }else if(disable === "up"){
+                            snake.splice(0,1)
+                            snake.push({"x":sk.x,"y":sk.y+=10,"w":10,"h":10,"bg":snake[snake.length-1].bg})
+                        }
+                    }
+                }
+            }
+            var lose = false
+        function loseCheck(){                                                           
+            if(snake[snake.length-1].x<0||snake[snake.length-1].x>cW||snake[snake.length-1].y<0||snake[snake.length-1].y>cH){
+                lose = true
+            }
+            
+            for(var l=0;l<snake.length-2;l++){              //Snake on Snake Hit Detection
+                var bdy = snake[l]
+                var hd = snake[snake.length-1]
+                if(bdy.x+bdy.w>=hd.x+1 && bdy.x+1<=hd.x+hd.w && bdy.y+bdy.h>=hd.y+1 && bdy.y+1<=hd.y+hd.h){
+                    lose = true
+                }
+            }
+            
+            if(lose === true){                  //When You Lose
+                    ctx.font ="600 20px sans-serif"
+                    ctx.fillText("GAME OVER",cW/2-60,cH/2,200)
+                    audio.pause()
+                    death.play()
+                    clearInterval(Int)   //freezes the game
+                    document.getElementById('replay').style.visibility = "visible"
+            }
+        }
+
+        var stert = new player()            //Your Player, the snake
+        stert.dir="right"
+        
+        
+        document.addEventListener('keydown', function(event){           //Input listeners
+            var keyPress = String.fromCharCode(event.keyCode)
+
+            if(keyPress === "D"){
+                stert.dir ="right"              
+            }else if(keyPress === "A"){
+                stert.dir = "left"               
+            }else if(keyPress === "W"){
+                stert.dir = "up"              
+            }else if(keyPress === "S"){
+                stert.dir = "down"
+            }
+        })
+
+        var food = [{"x":Math.random()*(cW-15),"y":Math.random()*(cH-15),"w":10,"h":10,"bg":foodColor}]  //food attributes; color; place
+        
+        function renderFood(){                      //renders the food; include snake on food hit detection
+            for(var f=0; f<food.length;f++){
+                var fd = food[f]
+                ctx.fillStyle = fd.bg
+                ctx.fillRect(fd.x,fd.y,fd.w,fd.h)
+                if(fd.x+fd.w >= snake[snake.length-1].x && fd.x <=snake[snake.length-1].x+snake[snake.length-1].w && fd.y+fd.h >=snake[snake.length-1].y && fd.y<=snake[snake.length-1].y+snake[snake.length-1].h){
+                    eat.play()
+                    food.splice(0,1)
+                    foodColor = setColors()
+                    food.push({"x":Math.random()*(cW-15),"y":Math.random(cH-15)*480,"w":10,"h":10,"bg":foodColor})
+                        snake.push({"x":snake[snake.length-1].x,"y":snake[snake.length-1].y,"w":10,"h":10,"bg":fd.bg}) //*each section should be unique color
+                }
+                }
+            }
+        
+
+            function animate(){
+            ctx.save
+            ctx.clearRect(0,0,cW,cH)
+            renderFood()
+            stert.render()
+            loseCheck()
+            ctx.restore
+            }
+            var Int = setInterval(animate,40)
+    }
+    
+    window.addEventListener('load', draw)
+    window.addEventListener('load', playAudio)
+</script>
+</head>
+<body>
+    <canvas id="Playpen" width="650" height="650"></canvas>
+    <h2 id="status"></h2>
+    <div id="colors1"></div>
+    <div id="colors2"></div>
+    <div id="colors3"></div>
+
+    <button id="replay" onclick="location.reload()">Replay</button>
+</body>
+</html>
