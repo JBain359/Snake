@@ -3,7 +3,8 @@
 <html>
 <head>
 <style>
-    body{background: #666}
+    body{background-image: url(Picture/snakeBackgound.png);
+    background-size: cover;}
     #Playpen{margin: auto; background: #fff; border-color: #000}
     #replay{visibility: hidden}
     #status{font-family: sans-serif}
@@ -31,7 +32,9 @@
 
         var cW = ctx.canvas.width
         var cH = ctx.canvas.height
-
+        
+        var pause = 1
+        
         function getColor(){                            // food color randomizer
             var hex = "0123456789ABCDEF".split('')
             var color='#'
@@ -157,6 +160,8 @@
                 stert.dir = "up"              
             }else if(keyPress === "S"){
                 stert.dir = "down"
+            }else if(keyPress === "P"){
+                pause *=-1
             }
         })
 
@@ -171,30 +176,40 @@
                     eat.play()
                     food.splice(0,1)
                     foodColor = setColors()
-                    food.push({"x":Math.random()*(cW-15),"y":Math.random(cH-15)*480,"w":10,"h":10,"bg":foodColor})
+                    food.push({"x":Math.random()*(cW-15),"y":Math.random()*(cH-15),"w":10,"h":10,"bg":foodColor})
                         snake.push({"x":snake[snake.length-1].x,"y":snake[snake.length-1].y,"w":10,"h":10,"bg":fd.bg}) //*each section should be unique color
                 }
                 }
             }
         
-
+            
+        
             function animate(){
-            ctx.save
-            ctx.clearRect(0,0,cW,cH)
-            renderFood()
-            stert.render()
-            loseCheck()
-            ctx.restore
+            if(pause > 0)
+                {
+                    ctx.save
+                    ctx.clearRect(0,0,cW,cH)
+                    renderFood()
+                    stert.render()
+                    loseCheck()
+                    ctx.restore
+                }
+                else{
+                    ctx.font ="600 20px sans-serif"
+                    ctx.fillText("Paused",cW/2-60,cH/2,200)
+                }
             }
             var Int = setInterval(animate,40)
     }
+    
+
     
     window.addEventListener('load', draw)
     window.addEventListener('load', playAudio)
 </script>
 </head>
 <body>
-    <canvas id="Playpen" width="650" height="650"></canvas>
+    <canvas id="Playpen" width="450" height="450"></canvas>
     <h2 id="status"></h2>
     <div id="colors1"></div>
     <div id="colors2"></div>
